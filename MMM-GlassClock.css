@@ -46,7 +46,10 @@
   content: "";
   position: absolute;
   inset: -20%;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.35));
+  /* Feathered at both ends (same fix as MMM-GlassTempest): a hard-edged gradient shows its box
+     edge as a diagonal line, most visibly when the band is parked under reduced motion / Pi.
+     90deg, not 120deg: the tilt comes from rotate() below. */
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.4) 30%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.35) 70%, rgba(255, 255, 255, 0));
   transform: translateX(-60%) rotate(8deg);
   animation: gc-shimmer 16s linear infinite;
   opacity: 0.32;
@@ -328,11 +331,20 @@ body.mm-day .MMM-GlassClock .gc-progress-fill,
   transition: none;
 }
 
+/* Park the frozen shimmer mid-card so its soft band stays on the glass. */
+.MMM-GlassClock.gc-reduced.glass-card::before {
+  transform: translateX(0) rotate(8deg);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .MMM-GlassClock.glass-card::before,
   .MMM-GlassClock.glass-card::after,
   .MMM-GlassClock .gc-hm {
     animation: none;
+  }
+
+  .MMM-GlassClock.glass-card::before {
+    transform: translateX(0) rotate(8deg);
   }
 
   .MMM-GlassClock .gc-progress-fill {

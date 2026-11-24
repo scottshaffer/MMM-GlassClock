@@ -2,6 +2,8 @@
 
 ## [0.2.1]
 
+- Feathered the glass shimmer so it no longer leaves a diagonal line across the card (most visible
+  on a Raspberry Pi, where the shimmer is frozen); same fix as MMM-GlassTempest.
 - `dayMode` now defaults to `"auto"`, so the card is dark text on light glass during the day
   without extra configuration (it stayed dark unless `dayMode` was set).
 
