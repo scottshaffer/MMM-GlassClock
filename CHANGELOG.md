@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0]
+
+- Full day (light glass) look: card, date tile, text and progress bar.
+- `dayMode`: `"auto"` switches at sunrise and sunset taken from MMM-GlassTempest's weather broadcast
+  (`sunNotification`), falling back to `dayStart`/`dayEnd`; `"day"` and `"night"` fix the look.
+- The light look also follows `body.mm-day` from a theme or MMM-GlassMonthlyCalendar.
+
 ## [0.1.0]
 
 - First release: liquid-glass clock card styled to match MMM-GlassTempest.

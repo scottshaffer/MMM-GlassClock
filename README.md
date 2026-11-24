@@ -13,7 +13,8 @@ card, shimmer, colors and theme variables.
 - Any locale and any time zone, using the browser's built-in `Intl` (no npm packages)
 - Liquid progress bar that fills over the day (or over each minute)
 - Standard layout (tile + time) or compact layout (centered)
-- Follows your theme's `--mm-text`, `--mm-text-2`, `--mm-accent-2` and `body.mm-day` day mode
+- Light day look and dark night look, switched at sunrise and sunset with `dayMode: "auto"`
+  (see [Day and night](#day-and-night))
 - Light on the CPU: only changed text is updated, ticks stop while the card is hidden (MMM-pages),
   and the Pi profile turns the shimmer animations off
 
@@ -84,7 +85,13 @@ A complete entry with every option at its default (plus a time zone), ready to p
     minWidth: 260,
     maxWidth: 380,
     performanceProfile: "auto",    // "auto" | "pi" | "full"
-    reduceMotion: false
+    reduceMotion: false,
+
+    // Day and night
+    dayMode: "none",           // "none" | "day" | "night" | "auto"
+    sunNotification: "AMBIENT_WEATHER_DATA",
+    dayStart: "07:00",
+    dayEnd: "19:00"
   }
 },
 ```
@@ -112,9 +119,27 @@ A complete entry with every option at its default (plus a time zone), ready to p
 | `minWidth` / `maxWidth` | `260` / `380` | Card width limits in px (same as GlassTempest) |
 | `performanceProfile` | `"auto"` | `"auto"`, `"pi"` (no animation) or `"full"` |
 | `reduceMotion` | `false` | Turn off the shimmer and other motion |
+| `dayMode` | `"none"` | `"auto"` (light from sunrise to sunset), `"day"` (always light), `"night"` (always dark), or `"none"` (light only if a theme or MMM-GlassMonthlyCalendar sets `body.mm-day`) |
+| `sunNotification` | `"AMBIENT_WEATHER_DATA"` | Notification carrying `sunrise` / `sunset` for `dayMode: "auto"` (MMM-GlassTempest's weather broadcast) |
+| `dayStart` / `dayEnd` | `"07:00"` / `"19:00"` | Light hours for `dayMode: "auto"` until sunrise and sunset have been received |
 
 Locale formats differ: the order of the date and the AM/PM text come from the locale (for example
 `"de"` gives `Montag` and `23. November 2026`).
+
+### Day and night
+
+```js
+config: { dayMode: "auto" }
+```
+
+With `"auto"` the card turns to light glass at sunrise and back to dark at sunset. It takes the
+times from [MMM-GlassTempest](https://github.com/scottshaffer/MMM-GlassTempest), which broadcasts
+them with every weather update, so no location is needed. Until the first update (or without
+GlassTempest) it is light from `dayStart` to `dayEnd`. Set `dayMode: "auto"` on GlassTempest and
+MMM-GlassMonthlyCalendar too and all three switch together.
+
+The card also turns light whenever something sets `body.mm-day` on the page (a theme, or
+MMM-GlassMonthlyCalendar with `dayModeScope: "page"`).
 
 ### A world clock
 

@@ -38,7 +38,13 @@ Module.register("MMM-GlassClock", {
     minWidth: 260,
     maxWidth: 380,
     performanceProfile: "auto", // auto | pi | full
-    reduceMotion: false
+    reduceMotion: false,
+
+    // Day mode (light glass), shared with MMM-GlassTempest and MMM-GlassMonthlyCalendar
+    dayMode: "none", // "none" (light only if a theme sets body.mm-day) | "day" | "night" | "auto"
+    sunNotification: "AMBIENT_WEATHER_DATA", // "auto": sunrise/sunset from MMM-GlassTempest's broadcast
+    dayStart: "07:00", // "auto" before any sunrise/sunset has been received
+    dayEnd: "19:00"
   },
 
   getStyles() {
@@ -59,7 +65,15 @@ Module.register("MMM-GlassClock", {
         window.matchMedia &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches);
     this._buildFormatters();
+    this.weatherSun = null;
+    this.isDay = this._computeIsDay(new Date());
     this._schedule();
+  },
+
+  notificationReceived(notification, payload) {
+    if (this.config.sunNotification && notification === this.config.sunNotification) {
+      this._receiveSunTimes(payload);
+    }
   },
 
   suspend() {
@@ -71,6 +85,57 @@ Module.register("MMM-GlassClock", {
   resume() {
     this.suspended = false;
     this._tick();
+  },
+
+  /* ---------- day mode ---------- */
+
+  _dayOrdinal(d) {
+    return Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+  },
+
+  // Sunrise/sunset broadcast by MMM-GlassTempest (ISO strings or timestamps).
+  _receiveSunTimes(payload) {
+    if (!payload || payload.sunrise == null || payload.sunset == null) return;
+    const toDate = (v) => new Date(typeof v === "number" && v < 1e12 ? v * 1000 : v);
+    const rise = toDate(payload.sunrise);
+    const set = toDate(payload.sunset);
+    if (isNaN(rise) || isNaN(set) || set <= rise) return;
+    this.weatherSun = { rise, set };
+    this._updateDayMode(new Date());
+  },
+
+  // true = light, false = dark, null = leave it to the theme (dayMode "none").
+  _computeIsDay(now) {
+    const mode = String(this.config.dayMode || "none").toLowerCase();
+    if (mode === "day") return true;
+    if (mode === "night") return false;
+    if (mode !== "auto") return null;
+    if (this.weatherSun) {
+      // Times up to 3 days old are moved to today (they shift a minute or two a day).
+      const shift = this._dayOrdinal(now) - this._dayOrdinal(this.weatherSun.rise);
+      if (shift >= 0 && shift <= 3) {
+        const move = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + shift, d.getHours(), d.getMinutes(), d.getSeconds());
+        return now >= move(this.weatherSun.rise) && now < move(this.weatherSun.set);
+      }
+    }
+    const mins = (hhmm) => {
+      const m = String(hhmm || "").match(/^(\d{1,2}):(\d{2})$/);
+      return m ? +m[1] * 60 + +m[2] : null;
+    };
+    const start = mins(this.config.dayStart) ?? 420;
+    const end = mins(this.config.dayEnd) ?? 1140;
+    const t = now.getHours() * 60 + now.getMinutes();
+    return start <= end ? t >= start && t < end : t >= start || t < end;
+  },
+
+  _updateDayMode(now) {
+    const isDay = this._computeIsDay(now);
+    if (isDay === this.isDay) return;
+    this.isDay = isDay;
+    if (this.wrapper && this.wrapper.classList) {
+      if (isDay) this.wrapper.classList.add("gc-light");
+      else this.wrapper.classList.remove("gc-light");
+    }
   },
 
   /* ---------- settings ---------- */
@@ -209,6 +274,7 @@ Module.register("MMM-GlassClock", {
   },
 
   _render(date) {
+    this._updateDayMode(date);
     if (!this.refs) return;
     const s = this._snapshot(date);
     this._set("hm", s.hm);
@@ -243,6 +309,8 @@ Module.register("MMM-GlassClock", {
     const wrapper = this._el("div", "MMM-GlassClock glass-card raised-edge");
     wrapper.classList.add(compact ? "gc-compact" : "gc-standard");
     if (this.reduceMotion) wrapper.classList.add("gc-reduced");
+    if (this.isDay) wrapper.classList.add("gc-light");
+    this.wrapper = wrapper;
     if (c.blinkColon && !this.reduceMotion) wrapper.classList.add("gc-blink");
     wrapper.style.minWidth = `${Number(c.minWidth) || 260}px`;
     if (Number(c.maxWidth) > 0) wrapper.style.maxWidth = `${Number(c.maxWidth)}px`;

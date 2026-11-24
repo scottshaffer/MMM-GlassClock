@@ -17,6 +17,7 @@ class FakeElement {
     this.style = {};
     this.classList = {
       add: (c) => this._classes.add(c),
+      remove: (c) => this._classes.delete(c),
       contains: (c) => this._classes.has(c)
     };
   }
@@ -178,4 +179,41 @@ test("ticks every second with seconds shown, every minute without, none while su
 test("pi profile enables reduced motion", () => {
   const { m } = setup({ performanceProfile: "pi" });
   assert.ok(m.getDom().classList.contains("gc-reduced"));
+});
+
+test("dayMode: day and night are fixed; none leaves it to the theme", () => {
+  assert.ok(setup({ dayMode: "day" }).m.getDom().classList.contains("gc-light"));
+  assert.ok(!setup({ dayMode: "night" }).m.getDom().classList.contains("gc-light"));
+  const { m } = setup();
+  assert.equal(m.isDay, null);
+  assert.ok(!m.getDom().classList.contains("gc-light"));
+});
+
+test("dayMode auto: fixed hours until GlassTempest sends sunrise and sunset", () => {
+  const { m } = setup({ dayMode: "auto" });
+  const card = m.getDom();
+  const local = (h, mi = 0) => new Date(2026, 10, 23, h, mi);
+  m._render(local(6, 59));
+  assert.ok(!card.classList.contains("gc-light"));
+  m._render(local(7, 0));
+  assert.ok(card.classList.contains("gc-light"));
+  m._render(local(19, 0));
+  assert.ok(!card.classList.contains("gc-light"));
+
+  // Sun times from MMM-GlassTempest's weather broadcast take over
+  m.notificationReceived("AMBIENT_WEATHER_DATA", {
+    temperature: 47,
+    sunrise: local(6, 51).toISOString(),
+    sunset: local(16, 24).toISOString()
+  });
+  m._render(local(6, 55));
+  assert.ok(card.classList.contains("gc-light"));
+  m._render(local(16, 30));
+  assert.ok(!card.classList.contains("gc-light"));
+  // Next morning, before a fresh broadcast: yesterday's times are carried over
+  m._render(new Date(2026, 10, 24, 6, 55));
+  assert.ok(card.classList.contains("gc-light"));
+  // Broadcasts without sun times are ignored
+  m.notificationReceived("AMBIENT_WEATHER_DATA", { temperature: 50 });
+  assert.equal(m.weatherSun.rise.getHours(), 6);
 });
