@@ -1,0 +1,303 @@
+/* MMM-GlassClock.css
+ * Liquid-glass clock card. The card shell uses the same values as MMM-GlassTempest so the two
+ * read as one set; every rule is scoped to .MMM-GlassClock so other glass modules are untouched.
+ * Colors follow the theme variables (--mm-text, --mm-text-2, --mm-accent-2, body.mm-day).
+ */
+
+.MMM-GlassClock {
+  color: var(--mm-text, #e9edf5);
+  font-family: "SF Pro Display", "SF Pro Text", "Inter", "Segoe UI", -apple-system, system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  box-sizing: border-box;
+  transition: opacity 0.6s ease, filter 0.6s ease;
+}
+
+/* === Liquid glass card (same recipe as MMM-GlassTempest) === */
+.MMM-GlassClock.glass-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 260px;
+  max-width: 380px;
+  height: auto;
+  padding: 16px;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 18px 50px rgba(0, 12, 48, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    radial-gradient(120% 120% at 12% 12%, rgba(134, 239, 255, 0.32), rgba(37, 99, 235, 0)),
+    radial-gradient(140% 140% at 88% 18%, rgba(224, 231, 255, 0.28), rgba(99, 102, 241, 0));
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  overflow: hidden;
+}
+
+.MMM-GlassClock.glass-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Sweeping highlight */
+.MMM-GlassClock.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.35));
+  transform: translateX(-60%) rotate(8deg);
+  animation: gc-shimmer 16s linear infinite;
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+/* Floating colour bloom - mirrored to the bottom-left so the clock and weather cards
+   frame each other when stacked. */
+.MMM-GlassClock.glass-card::after {
+  content: "";
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  bottom: -150px;
+  left: -90px;
+  background:
+    radial-gradient(circle at 25% 30%, rgba(125, 211, 252, 0.65), rgba(14, 165, 233, 0.08)),
+    radial-gradient(circle at 80% 70%, rgba(129, 140, 248, 0.55), rgba(59, 130, 246, 0.1));
+  filter: blur(38px);
+  opacity: 0.45;
+  pointer-events: none;
+  animation: gc-float 18s ease-in-out infinite alternate;
+}
+
+.MMM-GlassClock.raised-edge {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 18px 50px rgba(0, 12, 48, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+@keyframes gc-float {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.55; }
+  100% { transform: translate3d(-8px, -6px, 0) scale(1.05); opacity: 0.38; }
+}
+
+@keyframes gc-shimmer {
+  0% { transform: translateX(-60%) rotate(8deg); opacity: 0.32; }
+  50% { transform: translateX(30%) rotate(8deg); opacity: 0.14; }
+  100% { transform: translateX(120%) rotate(8deg); opacity: 0.32; }
+}
+
+/* Title (matches .gt-title) */
+.MMM-GlassClock .gc-title {
+  width: 100%;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+}
+
+/* === Layout === */
+.MMM-GlassClock .gc-main {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.MMM-GlassClock.gc-compact .gc-main {
+  justify-content: center;
+}
+
+.MMM-GlassClock.gc-compact .gc-right {
+  align-items: center;
+  text-align: center;
+}
+
+/* Calendar tile: a smaller pane of glass inside the card, sized like the weather icon column */
+.MMM-GlassClock .gc-tile {
+  flex: 0 0 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 6px 9px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -8px 18px rgba(14, 165, 233, 0.12),
+    0 6px 18px rgba(0, 12, 48, 0.25);
+}
+
+.MMM-GlassClock .gc-tile-month {
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--mm-accent-2, #7dd3fc);
+}
+
+.MMM-GlassClock .gc-tile-day {
+  font-size: 44px;
+  font-weight: 650;
+  line-height: 1;
+  margin: 2px 0 3px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+}
+
+.MMM-GlassClock .gc-tile-weekday {
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--mm-text-2, rgba(233, 237, 245, 0.72));
+}
+
+.MMM-GlassClock .gc-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Time */
+.MMM-GlassClock .gc-time {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.MMM-GlassClock.gc-compact .gc-time {
+  justify-content: center;
+}
+
+.MMM-GlassClock .gc-hm {
+  font-size: 54px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.25);
+}
+
+.MMM-GlassClock .gc-sec {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--mm-accent-2, #7dd3fc);
+  min-width: 1.4em;
+}
+
+.MMM-GlassClock .gc-ampm {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--mm-text-2, rgba(233, 237, 245, 0.72));
+}
+
+.MMM-GlassClock.gc-blink .gc-hm {
+  animation: gc-breathe 2s ease-in-out infinite;
+}
+
+@keyframes gc-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.86; }
+}
+
+/* Date lines */
+.MMM-GlassClock .gc-weekday {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.MMM-GlassClock .gc-date {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--mm-text-2, rgba(233, 237, 245, 0.72));
+}
+
+.MMM-GlassClock .gc-zone {
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--mm-text-2, rgba(233, 237, 245, 0.6));
+}
+
+/* Liquid progress bar */
+.MMM-GlassClock .gc-progress {
+  margin-top: 14px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.MMM-GlassClock .gc-progress-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, rgba(125, 211, 252, 0.9), rgba(129, 140, 248, 0.9));
+  box-shadow: 0 0 10px rgba(125, 211, 252, 0.55);
+  transition: transform 0.9s linear;
+}
+
+/* Minute bar: snap back at :00 instead of sweeping backwards */
+.MMM-GlassClock .gc-progress-minute .gc-progress-fill {
+  transition: none;
+}
+
+/* === Day mode (theme sets body.mm-day) === */
+body.mm-day .MMM-GlassClock .gc-tile {
+  border-color: rgba(29, 39, 56, 0.12);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.3));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 6px 16px rgba(40, 56, 84, 0.14);
+}
+
+body.mm-day .MMM-GlassClock .gc-tile-month,
+body.mm-day .MMM-GlassClock .gc-sec {
+  color: var(--mm-accent-2, #0369a1);
+}
+
+body.mm-day .MMM-GlassClock .gc-hm,
+body.mm-day .MMM-GlassClock .gc-tile-day {
+  text-shadow: none;
+}
+
+body.mm-day .MMM-GlassClock .gc-progress {
+  background: rgba(29, 39, 56, 0.1);
+}
+
+/* === Reduced motion / Pi profile: no continuous compositor work === */
+.MMM-GlassClock.gc-reduced.glass-card::before,
+.MMM-GlassClock.gc-reduced.glass-card::after,
+.MMM-GlassClock.gc-reduced .gc-hm {
+  animation: none;
+}
+
+.MMM-GlassClock.gc-reduced .gc-progress-fill {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .MMM-GlassClock.glass-card::before,
+  .MMM-GlassClock.glass-card::after,
+  .MMM-GlassClock .gc-hm {
+    animation: none;
+  }
+
+  .MMM-GlassClock .gc-progress-fill {
+    transition: none;
+  }
+}
