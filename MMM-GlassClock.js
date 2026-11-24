@@ -41,7 +41,7 @@ Module.register("MMM-GlassClock", {
     reduceMotion: false,
 
     // Day mode (light glass), shared with MMM-GlassTempest and MMM-GlassMonthlyCalendar
-    dayMode: "none", // "none" (light only if a theme sets body.mm-day) | "day" | "night" | "auto"
+    dayMode: "auto", // "auto" (light sunrise-sunset) | "day" | "night" | "none" (light only if a theme sets body.mm-day)
     sunNotification: "AMBIENT_WEATHER_DATA", // "auto": sunrise/sunset from MMM-GlassTempest's broadcast
     dayStart: "07:00", // "auto" before any sunrise/sunset has been received
     dayEnd: "19:00"

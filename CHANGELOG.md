@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.1]
+
+- `dayMode` now defaults to `"auto"`, so the card is dark text on light glass during the day
+  without extra configuration (it stayed dark unless `dayMode` was set).
+
 ## [0.2.0]
 
 - Full day (light glass) look: card, date tile, text and progress bar.

@@ -88,7 +88,7 @@ A complete entry with every option at its default (plus a time zone), ready to p
     reduceMotion: false,
 
     // Day and night
-    dayMode: "none",           // "none" | "day" | "night" | "auto"
+    dayMode: "auto",           // "auto" | "day" | "night" | "none"
     sunNotification: "AMBIENT_WEATHER_DATA",
     dayStart: "07:00",
     dayEnd: "19:00"
@@ -119,7 +119,7 @@ A complete entry with every option at its default (plus a time zone), ready to p
 | `minWidth` / `maxWidth` | `260` / `380` | Card width limits in px (same as GlassTempest) |
 | `performanceProfile` | `"auto"` | `"auto"`, `"pi"` (no animation) or `"full"` |
 | `reduceMotion` | `false` | Turn off the shimmer and other motion |
-| `dayMode` | `"none"` | `"auto"` (light from sunrise to sunset), `"day"` (always light), `"night"` (always dark), or `"none"` (light only if a theme or MMM-GlassMonthlyCalendar sets `body.mm-day`) |
+| `dayMode` | `"auto"` | `"auto"` (light from sunrise to sunset), `"day"` (always light), `"night"` (always dark), or `"none"` (light only if a theme or MMM-GlassMonthlyCalendar sets `body.mm-day`) |
 | `sunNotification` | `"AMBIENT_WEATHER_DATA"` | Notification carrying `sunrise` / `sunset` for `dayMode: "auto"` (MMM-GlassTempest's weather broadcast) |
 | `dayStart` / `dayEnd` | `"07:00"` / `"19:00"` | Light hours for `dayMode: "auto"` until sunrise and sunset have been received |
 
@@ -128,15 +128,13 @@ Locale formats differ: the order of the date and the AM/PM text come from the lo
 
 ### Day and night
 
-```js
-config: { dayMode: "auto" }
-```
-
-With `"auto"` the card turns to light glass at sunrise and back to dark at sunset. It takes the
+The clock uses `dayMode: "auto"` by default: dark text on light glass during the day, light text on
+dark glass at night. With `"auto"` the card turns to light glass at sunrise and back to dark at sunset. It takes the
 times from [MMM-GlassTempest](https://github.com/scottshaffer/MMM-GlassTempest), which broadcasts
 them with every weather update, so no location is needed. Until the first update (or without
 GlassTempest) it is light from `dayStart` to `dayEnd`. Set `dayMode: "auto"` on GlassTempest and
-MMM-GlassMonthlyCalendar too and all three switch together.
+MMM-GlassMonthlyCalendar too (their default is `"none"`) and all three switch together. Use
+`dayMode: "none"` to leave the look to a theme.
 
 The card also turns light whenever something sets `body.mm-day` on the page (a theme, or
 MMM-GlassMonthlyCalendar with `dayModeScope: "page"`).

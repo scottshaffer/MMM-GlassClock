@@ -181,10 +181,18 @@ test("pi profile enables reduced motion", () => {
   assert.ok(m.getDom().classList.contains("gc-reduced"));
 });
 
+test("dayMode defaults to auto (light by day without extra config)", () => {
+  assert.equal(setup().m.config.dayMode, "auto");
+  const { m } = setup();
+  const card = m.getDom();
+  m._render(new Date(2026, 10, 23, 12, 0));
+  assert.ok(card.classList.contains("gc-light"));
+});
+
 test("dayMode: day and night are fixed; none leaves it to the theme", () => {
   assert.ok(setup({ dayMode: "day" }).m.getDom().classList.contains("gc-light"));
   assert.ok(!setup({ dayMode: "night" }).m.getDom().classList.contains("gc-light"));
-  const { m } = setup();
+  const { m } = setup({ dayMode: "none" });
   assert.equal(m.isDay, null);
   assert.ok(!m.getDom().classList.contains("gc-light"));
 });
