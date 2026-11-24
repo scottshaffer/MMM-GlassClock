@@ -133,6 +133,7 @@ npm test
 
 ## Credits
 
+- This module was mostly written by Claude Opus 
 - Liquid-glass card recipe from [MMM-AmbientWeather](https://github.com/hearter20176/MMM-AmbientWeather)
   by Harry Arter (MIT), as used in MMM-GlassTempest.
 
