@@ -121,19 +121,12 @@ test("locale is honoured (German)", () => {
   assert.equal(s.day, "23");
 });
 
-test("day and minute progress", () => {
-  const { m } = setup();
-  const s = m._snapshot(new Date("2026-11-23T18:00:30Z")); // 12:00:30 Chicago
-  assert.ok(Math.abs(s.dayProgress - (12 * 3600 + 30) / 86400) < 1e-9);
-  assert.equal(s.minuteProgress, 0.5);
-});
-
 test("bad time zone and locale fall back instead of throwing", () => {
   const { m } = setup({ timeZone: "Mars/Olympus", locale: "not a locale!!" });
   assert.ok(m._snapshot(SAMPLE).hm.match(/^\d{2}:\d{2}$/));
 });
 
-test("getDom builds the standard card with tile, time, date and progress bar", () => {
+test("standard card: tile and large time, no date text and no progress bar", () => {
   const { m } = setup({ title: "Clock" });
   const dom = m.getDom();
   assert.ok(dom.classList.contains("glass-card"));
@@ -141,16 +134,21 @@ test("getDom builds the standard card with tile, time, date and progress bar", (
   assert.equal(find(dom, "gc-title").textContent, "Clock");
   assert.ok(find(dom, "gc-tile-day").textContent.match(/^\d{1,2}$/));
   assert.ok(find(dom, "gc-hm").textContent.match(/^\d{2}:\d{2}$/));
-  assert.ok(find(dom, "gc-progress-fill").style.transform.startsWith("scaleX("));
+  assert.equal(find(dom, "gc-weekday"), null);
+  assert.equal(find(dom, "gc-date"), null);
+  assert.equal(find(dom, "gc-progress"), null);
+  assert.ok(find(dom, "gc-tile-weekday"));
+  assert.ok(find(find(dom, "gc-suffix"), "gc-sec"));
 });
 
 test("compact layout and hidden parts", () => {
-  const { m } = setup({ layout: "compact", showSeconds: false, progressBar: "none", showWeekday: false });
+  const full = setup({ layout: "compact" }).m.getDom();
+  assert.ok(find(full, "gc-weekday") && find(full, "gc-date"));
+  const { m } = setup({ layout: "compact", showSeconds: false, showWeekday: false });
   const dom = m.getDom();
   assert.ok(dom.classList.contains("gc-compact"));
   assert.equal(find(dom, "gc-tile"), null);
   assert.equal(find(dom, "gc-sec"), null);
-  assert.equal(find(dom, "gc-progress"), null);
   assert.equal(find(dom, "gc-weekday"), null);
 });
 
@@ -158,7 +156,7 @@ test("render only rewrites nodes whose text changed", () => {
   const { m } = setup();
   const dom = m.getDom();
   m._render(SAMPLE);
-  const dateEl = find(dom, "gc-date");
+  const dateEl = find(dom, "gc-tile-day");
   dateEl.textContent = "sentinel"; // if render rewrote it, the sentinel would disappear
   m._render(new Date(SAMPLE.getTime() + 1000));
   assert.equal(dateEl.textContent, "sentinel");
@@ -168,7 +166,7 @@ test("render only rewrites nodes whose text changed", () => {
 test("ticks every second with seconds shown, every minute without, none while suspended", () => {
   const a = setup();
   assert.ok(a.timers[0].ms <= 1015);
-  const b = setup({ showSeconds: false, progressBar: "day" });
+  const b = setup({ showSeconds: false });
   assert.ok(b.timers[0].ms > 0 && b.timers[0].ms <= 60015);
   b.m.suspend();
   const before = b.timers.length;

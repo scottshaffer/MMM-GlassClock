@@ -20,8 +20,9 @@ Module.register("MMM-GlassClock", {
     blinkColon: false, // gentle colon pulse (disabled under reduced motion)
 
     // Date
-    showDateTile: true, // calendar tile (month / day / weekday) on the left, standard layout
-    showWeekday: true,
+    showDateTile: true, // calendar tile (month / day / weekday) beside a large time; standard layout
+    showWeekday: true, // weekday in the tile, or under the time in the compact layout
+    // Date line under the time - compact layout only (the tile already shows the date)
     showDate: true,
     showYear: true,
     dateFormat: "long", // "long" (November 23, 2026) | "medium" (Nov 23, 2026) | "short" (11/23/2026)
@@ -29,10 +30,7 @@ Module.register("MMM-GlassClock", {
     // Locale and zone
     locale: null, // null follows MagicMirror's global language, e.g. "en-US", "de"
     timeZone: null, // IANA zone such as "America/Chicago"; null uses the system zone
-    showTimeZone: false, // show the zone abbreviation under the date
-
-    // Liquid progress bar along the bottom of the card
-    progressBar: "day", // "day" (fills over 24 h) | "minute" (fills each minute) | "none"
+    showTimeZone: false, // show the zone abbreviation under the time
 
     // Sizing and performance (same meaning as in MMM-GlassTempest)
     minWidth: 260,
@@ -195,8 +193,6 @@ Module.register("MMM-GlassClock", {
     this.fmt = {
       // hourCycle h23 never prints "24"; h12 gives 12:xx for noon/midnight.
       time: fmt({ hour: h24 || this.config.leadingZero ? "2-digit" : "numeric", minute: "2-digit", second: "2-digit", hourCycle: h24 ? "h23" : "h12" }),
-      // 24-hour clock of the target zone, for the day progress bar.
-      clock24: fmt({ hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }),
       date: fmt(dateOpts),
       weekday: fmt({ weekday: "long" }),
       weekdayShort: fmt({ weekday: "short" }),
@@ -220,8 +216,6 @@ Module.register("MMM-GlassClock", {
   // Everything the card shows for a given instant.
   _snapshot(date) {
     const t = this._parts(this.fmt.time, date);
-    const c = this._parts(this.fmt.clock24, date);
-    const secOfDay = Number(c.hour) * 3600 + Number(c.minute) * 60 + Number(c.second);
     const zone = this._parts(this.fmt.zone, date).timeZoneName || "";
     return {
       hm: `${t.hour}:${t.minute}`,
@@ -232,17 +226,15 @@ Module.register("MMM-GlassClock", {
       monthShort: this.fmt.monthShort.format(date).replace(/\.$/, ""),
       day: this.fmt.dayNum.format(date).replace(/\.$/, ""),
       date: this.fmt.date.format(date),
-      zone,
-      dayProgress: secOfDay / 86400,
-      minuteProgress: Number(c.second) / 60
+      zone
     };
   },
 
   /* ---------- timing ---------- */
 
-  // Tick each second when seconds or the minute bar are visible, otherwise once a minute.
+  // Tick each second when seconds are visible, otherwise once a minute.
   _needsSeconds() {
-    return this.config.showSeconds || this.config.progressBar === "minute";
+    return !!this.config.showSeconds;
   },
 
   _schedule() {
@@ -286,14 +278,6 @@ Module.register("MMM-GlassClock", {
     this._set("tileMonth", s.monthShort);
     this._set("tileDay", s.day);
     this._set("tileWeekday", s.weekdayShort);
-    if (this.refs.bar) {
-      const p = this.config.progressBar === "minute" ? s.minuteProgress : s.dayProgress;
-      const val = `scaleX(${Math.max(0.002, p).toFixed(4)})`;
-      if (this.last.bar !== val) {
-        this.refs.bar.style.transform = val;
-        this.last.bar = val;
-      }
-    }
   },
 
   _el(tag, className, parent) {
@@ -332,19 +316,20 @@ Module.register("MMM-GlassClock", {
     const right = this._el("div", "gc-right", main);
     const time = this._el("div", "gc-time", right);
     refs.hm = this._el("span", "gc-hm", time);
-    if (c.showSeconds) refs.sec = this._el("span", "gc-sec", time);
-    if (!this.h24 && c.showAmPm) refs.ampm = this._el("span", "gc-ampm", time);
-
-    // In the standard layout the tile already shows the short weekday; the full one still
-    // reads better next to the date, so keep it in both layouts.
-    if (c.showWeekday) refs.weekday = this._el("div", "gc-weekday", right);
-    if (c.showDate) refs.date = this._el("div", "gc-date", right);
-    if (c.showTimeZone) refs.zone = this._el("div", "gc-zone", right);
-
-    if (c.progressBar === "day" || c.progressBar === "minute") {
-      const track = this._el("div", `gc-progress gc-progress-${c.progressBar}`, wrapper);
-      refs.bar = this._el("div", "gc-progress-fill", track);
+    // Seconds and AM/PM sit in a small stacked column beside the digits, so the digits can be large.
+    const showAmPm = !this.h24 && c.showAmPm;
+    if (c.showSeconds || showAmPm) {
+      const suffix = this._el("span", "gc-suffix", time);
+      if (c.showSeconds) refs.sec = this._el("span", "gc-sec", suffix);
+      if (showAmPm) refs.ampm = this._el("span", "gc-ampm", suffix);
     }
+
+    // The tile already shows month, day and weekday, so the date text is only in the compact layout.
+    if (compact) {
+      if (c.showWeekday) refs.weekday = this._el("div", "gc-weekday", right);
+      if (c.showDate) refs.date = this._el("div", "gc-date", right);
+    }
+    if (c.showTimeZone) refs.zone = this._el("div", "gc-zone", right);
 
     this.refs = refs;
     this.last = {};

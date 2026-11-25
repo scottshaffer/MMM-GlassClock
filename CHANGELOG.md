@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0]
+
+- Removed the progress bar and its `progressBar` option.
+- Standard layout: the weekday and date text are gone (the tile already shows them) and the time
+  is much larger, with seconds and AM/PM stacked beside it. The compact layout still shows the
+  weekday and date under the time.
+
 ## [0.2.1]
 
 - Feathered the glass shimmer so it no longer leaves a diagonal line across the card (most visible

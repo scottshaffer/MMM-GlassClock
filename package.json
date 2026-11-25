@@ -1,6 +1,6 @@
 {
   "name": "mmm-glassclock",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "MagicMirror liquid-glass clock card showing time, weekday, month, day and year; designed to pair with MMM-GlassTempest.",
   "repository": {
     "type": "git",

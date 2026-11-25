@@ -9,9 +9,9 @@ card, shimmer, colors and theme variables.
 ## Features
 
 - Time in 12- or 24-hour format, with optional seconds and AM/PM
-- Calendar tile (month, day, weekday) plus the full weekday and date
+- Calendar tile (month, day, weekday) beside a large time; the compact layout shows the weekday and
+  date as text instead
 - Any locale and any time zone, using the browser's built-in `Intl` (no npm packages)
-- Liquid progress bar that fills over the day (or over each minute)
 - Standard layout (tile + time) or compact layout (centered)
 - Light day look and dark night look, switched at sunrise and sunset with `dayMode: "auto"`
   (see [Day and night](#day-and-night))
@@ -80,8 +80,7 @@ A complete entry with every option at its default (plus a time zone), ready to p
     timeZone: "America/Chicago",   // null = the system time zone
     showTimeZone: false,
 
-    // Extras
-    progressBar: "day",            // "day" | "minute" | "none"
+    // Sizing and performance
     minWidth: 260,
     maxWidth: 380,
     performanceProfile: "auto",    // "auto" | "pi" | "full"
@@ -107,15 +106,14 @@ A complete entry with every option at its default (plus a time zone), ready to p
 | `showAmPm` | `true` | AM/PM in 12-hour mode |
 | `leadingZero` | `false` | `09:05` instead of `9:05` in 12-hour mode |
 | `blinkColon` | `false` | Gentle pulse on the time (off under reduced motion) |
-| `showDateTile` | `true` | Calendar tile; `false` gives the compact layout |
-| `showWeekday` | `true` | Full weekday under the time (and short weekday in the tile) |
-| `showDate` | `true` | Date line |
-| `showYear` | `true` | Include the year in the date line |
-| `dateFormat` | `"long"` | `"long"` (November 23, 2026), `"medium"` (Nov 23, 2026), `"short"` (11/23/2026) |
+| `showDateTile` | `true` | Calendar tile beside the time; `false` gives the compact layout |
+| `showWeekday` | `true` | Weekday in the tile (compact layout: under the time) |
+| `showDate` | `true` | Date line under the time, compact layout only |
+| `showYear` | `true` | Include the year in the date line (compact layout) |
+| `dateFormat` | `"long"` | Compact layout date line: `"long"` (November 23, 2026), `"medium"` (Nov 23, 2026), `"short"` (11/23/2026) |
 | `locale` | `null` | e.g. `"en-GB"`, `"de"`; `null` follows MagicMirror's `language` |
 | `timeZone` | `null` | IANA zone such as `"America/Chicago"`; `null` uses the system zone |
-| `showTimeZone` | `false` | Zone abbreviation (e.g. CST) under the date |
-| `progressBar` | `"day"` | `"day"`, `"minute"` or `"none"` |
+| `showTimeZone` | `false` | Zone abbreviation (e.g. CST) under the time |
 | `minWidth` / `maxWidth` | `260` / `380` | Card width limits in px (same as GlassTempest) |
 | `performanceProfile` | `"auto"` | `"auto"`, `"pi"` (no animation) or `"full"` |
 | `reduceMotion` | `false` | Turn off the shimmer and other motion |

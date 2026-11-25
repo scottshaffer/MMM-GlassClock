@@ -106,7 +106,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
 }
 
@@ -121,7 +121,7 @@
 
 /* Calendar tile: a smaller pane of glass inside the card, sized like the weather icon column */
 .MMM-GlassClock .gc-tile {
-  flex: 0 0 96px;
+  flex: 0 0 88px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -167,13 +167,14 @@
   justify-content: center;
   flex: 1;
   min-width: 0;
+  container-type: inline-size; /* lets the time scale to the space beside the tile */
 }
 
 /* Time */
 .MMM-GlassClock .gc-time {
   display: flex;
-  align-items: baseline;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
   line-height: 1;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -183,22 +184,38 @@
   justify-content: center;
 }
 
+/* Large time: scaled to the width beside the tile so the widest time ("12:58" plus AM/PM or
+   seconds) just fits, whatever minWidth/maxWidth are. 66px if container units are unsupported. */
 .MMM-GlassClock .gc-hm {
-  font-size: 54px;
+  font-size: 66px;
+  font-size: clamp(28px, calc(35cqw - 12px), 104px);
   font-weight: 650;
-  letter-spacing: -0.01em;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.25);
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.25);
+}
+
+.MMM-GlassClock.gc-compact .gc-hm {
+  font-size: 68px;
+  font-size: clamp(44px, calc(30cqw - 10px), 96px);
+}
+
+/* Seconds over AM/PM, in a narrow column so the digits get the width */
+.MMM-GlassClock .gc-suffix {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
 }
 
 .MMM-GlassClock .gc-sec {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 600;
   color: var(--mm-accent-2, #7dd3fc);
-  min-width: 1.4em;
 }
 
 .MMM-GlassClock .gc-ampm {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.8px;
   text-transform: uppercase;
@@ -233,32 +250,6 @@
   letter-spacing: 0.6px;
   text-transform: uppercase;
   color: var(--mm-text-2, rgba(233, 237, 245, 0.6));
-}
-
-/* Liquid progress bar */
-.MMM-GlassClock .gc-progress {
-  margin-top: 14px;
-  height: 5px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
-}
-
-.MMM-GlassClock .gc-progress-fill {
-  height: 100%;
-  width: 100%;
-  border-radius: 999px;
-  transform-origin: left center;
-  transform: scaleX(0);
-  background: linear-gradient(90deg, rgba(125, 211, 252, 0.9), rgba(129, 140, 248, 0.9));
-  box-shadow: 0 0 10px rgba(125, 211, 252, 0.55);
-  transition: transform 0.9s linear;
-}
-
-/* Minute bar: snap back at :00 instead of sweeping backwards */
-.MMM-GlassClock .gc-progress-minute .gc-progress-fill {
-  transition: none;
 }
 
 /* === Day mode: light glass ===
@@ -308,27 +299,11 @@ body.mm-day .MMM-GlassClock .gc-tile-day,
   text-shadow: none;
 }
 
-body.mm-day .MMM-GlassClock .gc-progress,
-.MMM-GlassClock.gc-light .gc-progress {
-  background: rgba(29, 39, 56, 0.1);
-  box-shadow: inset 0 1px 2px rgba(29, 39, 56, 0.12);
-}
-
-body.mm-day .MMM-GlassClock .gc-progress-fill,
-.MMM-GlassClock.gc-light .gc-progress-fill {
-  background: linear-gradient(90deg, #0ea5e9, #6366f1);
-  box-shadow: 0 0 8px rgba(14, 165, 233, 0.35);
-}
-
 /* === Reduced motion / Pi profile: no continuous compositor work === */
 .MMM-GlassClock.gc-reduced.glass-card::before,
 .MMM-GlassClock.gc-reduced.glass-card::after,
 .MMM-GlassClock.gc-reduced .gc-hm {
   animation: none;
-}
-
-.MMM-GlassClock.gc-reduced .gc-progress-fill {
-  transition: none;
 }
 
 /* Park the frozen shimmer mid-card so its soft band stays on the glass. */
@@ -345,9 +320,5 @@ body.mm-day .MMM-GlassClock .gc-progress-fill,
 
   .MMM-GlassClock.glass-card::before {
     transform: translateX(0) rotate(8deg);
-  }
-
-  .MMM-GlassClock .gc-progress-fill {
-    transition: none;
   }
 }
