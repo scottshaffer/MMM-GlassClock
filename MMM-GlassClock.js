@@ -56,6 +56,13 @@ Module.register("MMM-GlassClock", {
     this.suspended = false;
     this.last = {}; // last text written to each ref, so unchanged nodes are not touched
     this.performanceProfile = this._resolvePerformanceProfile();
+    if (typeof window !== "undefined" && window.addEventListener) {
+      window.addEventListener("resize", () => this._onResize());
+    }
+    // Web fonts can arrive after the first fit and change the digit widths.
+    if (typeof document !== "undefined" && document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => this._onResize());
+    }
     this.reduceMotion =
       this.config.reduceMotion === true ||
       this.performanceProfile === "pi" ||
@@ -83,6 +90,7 @@ Module.register("MMM-GlassClock", {
   resume() {
     this.suspended = false;
     this._tick();
+    this._fitTime();
   },
 
   /* ---------- day mode ---------- */
@@ -270,6 +278,11 @@ Module.register("MMM-GlassClock", {
     if (!this.refs) return;
     const s = this._snapshot(date);
     this._set("hm", s.hm);
+    // The width only changes when the digit count does (9:59 -> 10:00), so refit only then.
+    if (this.fitLength !== s.hm.length) {
+      this.fitLength = s.hm.length;
+      this._fitTime();
+    }
     this._set("sec", s.sec);
     this._set("ampm", s.ampm);
     this._set("weekday", s.weekday);
@@ -278,6 +291,38 @@ Module.register("MMM-GlassClock", {
     this._set("tileMonth", s.monthShort);
     this._set("tileDay", s.day);
     this._set("tileWeekday", s.weekdayShort);
+  },
+
+  /* The CSS sizes the time for typical fonts, but the font the mirror actually has (DejaVu Sans
+     in the MagicMirror Docker image, for one) can be wider and push AM/PM into the card's edge.
+     Measure the real row and shrink the digits until it fits, keeping a small gap. */
+  _fitTime(attempt = 0) {
+    const time = this.refs && this.refs.time;
+    const box = this.refs && this.refs.right; // the space the time row may use
+    const hm = this.refs && this.refs.hm;
+    if (!time || !box || !hm || typeof window === "undefined" || !window.getComputedStyle) return;
+    if (!time.isConnected || box.clientWidth === 0) {
+      // Not on screen yet (MagicMirror inserts the card after getDom) - try again shortly.
+      if (attempt < 20) setTimeout(() => this._fitTime(attempt + 1), 250);
+      return;
+    }
+    hm.style.fontSize = ""; // back to the CSS size, then shrink only if needed
+    const gap = 6;
+    const avail = box.clientWidth - gap;
+    // Content width: from the start of the digits to the end of the AM/PM / seconds column.
+    const last = time.lastElementChild || hm;
+    const need = last.getBoundingClientRect().right - hm.getBoundingClientRect().left;
+    if (need <= avail) return;
+    const hmWidth = hm.getBoundingClientRect().width;
+    const size = parseFloat(window.getComputedStyle(hm).fontSize);
+    const other = need - hmWidth; // AM/PM / seconds column and spacing
+    if (!(hmWidth > 0) || !(size > 0)) return;
+    const fitted = Math.max(24, Math.floor(size * ((avail - other) / hmWidth)));
+    hm.style.fontSize = `${fitted}px`;
+  },
+
+  _onResize() {
+    if (this.refs) this._fitTime();
   },
 
   _el(tag, className, parent) {
@@ -315,6 +360,21 @@ Module.register("MMM-GlassClock", {
 
     const right = this._el("div", "gc-right", main);
     const time = this._el("div", "gc-time", right);
+    refs.time = time;
+    refs.right = right;
+    // Refit when the card's width changes (e.g. when the region's other cards render).
+    if (typeof ResizeObserver !== "undefined") {
+      if (this.resizeObserver) this.resizeObserver.disconnect();
+      let lastWidth = 0;
+      this.resizeObserver = new ResizeObserver((entries) => {
+        const w = Math.round(entries[0].contentRect.width);
+        if (w && w !== lastWidth) {
+          lastWidth = w;
+          this._fitTime();
+        }
+      });
+      this.resizeObserver.observe(right);
+    }
     refs.hm = this._el("span", "gc-hm", time);
     // Seconds and AM/PM sit in a small stacked column beside the digits, so the digits can be large.
     const showAmPm = !this.h24 && c.showAmPm;
@@ -332,6 +392,7 @@ Module.register("MMM-GlassClock", {
     if (c.showTimeZone) refs.zone = this._el("div", "gc-zone", right);
 
     this.refs = refs;
+    this.fitLength = null;
     this.last = {};
     this._render(new Date());
     return wrapper;

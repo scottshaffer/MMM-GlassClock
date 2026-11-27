@@ -57,7 +57,7 @@ function setup(overrides = {}, globalConfig = { language: "en-US", timeFormat: 2
     file: (f) => f
   });
   m.start();
-  return { m, timers };
+  return { m, timers, sandbox };
 }
 
 function find(el, cls) {
@@ -222,4 +222,21 @@ test("dayMode auto: fixed hours until GlassTempest sends sunrise and sunset", ()
   // Broadcasts without sun times are ignored
   m.notificationReceived("AMBIENT_WEATHER_DATA", { temperature: 50 });
   assert.equal(m.weatherSun.rise.getHours(), 6);
+});
+
+test("_fitTime shrinks the digits only when the time row is wider than its space", () => {
+  const { m, sandbox } = setup({ showSeconds: false, timeFormat: 12 });
+  m.getDom();
+  const rect = (left, right) => () => ({ left, right, width: right - left });
+  const hm = { style: { fontSize: "" }, getBoundingClientRect: rect(0, 200) };
+  m.refs.hm = hm;
+  m.refs.time = { isConnected: true, lastElementChild: { getBoundingClientRect: rect(206, 240) } };
+  m.refs.right = { clientWidth: 226 };
+  sandbox.window = { getComputedStyle: () => ({ fontSize: "70px" }) };
+  // Need 240 px, have 226 - 6 = 220: the 200 px of digits at 70 px must lose 20 px -> 63 px.
+  m._fitTime();
+  assert.equal(hm.style.fontSize, "63px");
+  m.refs.right.clientWidth = 400; // plenty of room: back to the CSS size
+  m._fitTime();
+  assert.equal(hm.style.fontSize, "");
 });

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.1]
+
+- The time now measures itself and shrinks to fit when the mirror's font is wider than expected
+  (DejaVu Sans in the MagicMirror Docker image), so AM/PM no longer runs into the card's right edge
+  at 10:00-12:59. It refits when the card's width changes or web fonts finish loading.
+
 ## [0.3.0]
 
 - Removed the progress bar and its `progressBar` option.
